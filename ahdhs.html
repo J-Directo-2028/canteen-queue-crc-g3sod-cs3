@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Canteen Queue</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: url('canteen.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        fieldset {
+            border: 2px solid #4a6fa5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        legend {
+            font-weight: bold;
+            font-size: 1.5em;
+            color: #4a6fa5;
+            padding: 0 10px;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 3em;
+            color: #03245e;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <fieldset>
+        <h1> PSHS-CRC CANTEEN QUEUE SYSTEM </h1>
+        <audio id="bellSound" src="bell.mp3" preload="auto"></audio>
+
+        <fieldset>
+            <legend>Registration Form</legend>
+            <form id="addForm">
+                <label for="names">Enter your name:</label><br>
+                <input type="text" id="names" name="names"><br><br>
+                
+                <label for="sID">Enter Student ID (write N/A if not a student):</label><br>
+                <input type="text" id="sID" name="sID" placeholder="**-****-***"><br><br>
+                
+                <label for="purpose">Purpose of visit:</label><br>
+                <input type="text" id="purpose" name="purpose"><br><br>
+                
+                <input type="button" value="Add to Queue" onclick="add()">
+            </form>
+        </fieldset>
+
+        <fieldset>
+            <legend>Current Queue</legend>
+            <div id="display"></div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Admin Panel</legend>
+            <div id="customer" style="margin-top: 10px; font-weight: bold; color: #03245e;">
+                Currently Serving: <span id="name">None</span><br><br>
+            </div>
+            <input type="button" value="Serve Food to Customer" onclick="removeName()">
+        </fieldset>
+    </fieldset>
+
+    <script>
+        let queue = [];
+
+        function loadQueue() {
+            let storedQueue = localStorage.getItem("canteenQueue");
+            if (storedQueue) {
+                queue = JSON.parse(storedQueue);
+            }
+        }
+
+        function saveQueue() {
+            localStorage.setItem("canteenQueue", JSON.stringify(queue));
+        }
+
+        function displayQueue() {
+            let output = "";
+            if (queue.length === 0) {
+                output = '<span style="color: gray; font-style: italic;">There are no customers.</span>';
+                document.getElementById("name").innerText = "None";
+            } else {
+                for (let i = 0; i < queue.length; i++) {
+                    let info = `${i + 1}. ${queue[i].name} - ID: ${queue[i].id} - Purpose: ${queue[i].purpose}`;
+                    if (i === 0) {
+                        output += info + '<br>';
+                    } else {
+                        output += info + "<br>";
+                    }
+                }
+                document.getElementById("name").innerText = queue[0].name;
+            }
+            document.getElementById("display").innerHTML = output;
+        }
+
+        function add() {
+			let nameField = document.getElementById("names");
+			let idField = document.getElementById("sID");
+			let purposeField = document.getElementById("purpose");
+
+			let name = nameField.value.trim();
+			let id = idField.value.trim();
+			let purpose = purposeField.value.trim();
+
+			let Pattern = /^\d{2}-\d{4}-\d{3}$|^N\/A$/; //source: https://www.w3schools.com/tags/att_input_pattern.asp
+
+			if (name === "" || id === "" || purpose === "") {
+				alert("Please fill in all fields.");
+				return;
+			}
+
+			if (!Pattern.test(id)) {
+				alert("Invalid Student ID.");
+				nameField.value = "";
+				idField.value = "";
+				purposeField.value = "";
+				return;
+			}
+
+			queue.push({ name: name, id: id, purpose: purpose });
+			saveQueue();
+			displayQueue();
+
+			nameField.value = "";
+			idField.value = "";
+			purposeField.value = "";
+
+    alert("Kindly wait in the line :)");
+}
+        function removeName() {
+            if (queue.length > 0) {
+                queue.shift();
+                saveQueue();
+                displayQueue();
+				document.getElementById("bellSound").play();
+            }
+        }
+        loadQueue();
+        displayQueue();
+    </script>
+</body>
+</html>
